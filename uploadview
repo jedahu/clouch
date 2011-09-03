@@ -1,0 +1,17 @@
+#!/bin/sh
+
+URL="$1"
+ID="$2"
+
+lein uberjar || exit 1
+
+curl -X PUT "${URL}/_design/${ID}" -d @testview.json || exit 1
+
+REV=$(curl "${URL}/_design/${ID}" | \
+  grep -o '_rev[^,]*,' | \
+  grep -o ':[^,]*,' | \
+  grep -o '[^:",]*') \
+  || exit 1
+
+curl -X PUT "${URL}/_design/${ID}/javaviews.jar?rev=${REV}" \
+  --data-binary @"clouch-0.1.0-SNAPSHOT-standalone.jar"

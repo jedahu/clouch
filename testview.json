@@ -1,0 +1,27 @@
+{
+  "_id": "_design/${ID}",
+  "language": "java",
+  "views": {
+    "meanlength": {
+      "map": {
+        "classname": "me.panzoo.clouch.EvalView",
+        "configure":
+"{:map (fn [{length \"length\"} & _]
+                 (when length [[nil length]]))
+          :reduce (fn [seq & _]
+                    (if (empty? seq)
+                      [0 0]
+                      (let [len (count seq)]
+                        [(/ (apply + (for [[_ l] seq] l)) len) len])))
+          :rereduce (fn [seq & _]
+                      (let [len (apply + (for [[_ l] seq] l))
+                            avg (apply + (for [[a l] seq] (* a (/ l len))))]
+                        [avg len]))
+          :log (fn [msg & [conf]]
+                 (pr (str \"[\\\"log\\\", \\\"\" (conf :prefix) msg \"\\\"]\")))
+          :conf {:prefix \"MeanLength: \"}}"
+      },
+      "reduce": "me.panzoo.clouch.EvalView"
+    }
+  }
+}
